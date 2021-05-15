@@ -1,5 +1,4 @@
 /* SWISSEPH 
- $Header: /home/dieter/sweph/RCS/swehel.c,v 1.1 2009/04/21 06:05:59 dieter Exp dieter $
 
   Heliacal risings and related calculations
   
@@ -14,6 +13,7 @@
   Problem reports can be sent to victor.reijs@gmail.com or dieter@astro.ch
   
   Copyright (c) Victor Reijs, 2008
+  Copyright (C) 1997 - 2021 Astrodienst AG, Switzerland.  All rights reserved.
 
   License conditions
   ------------------
@@ -29,17 +29,17 @@
   system. The software developer, who uses any part of Swiss Ephemeris
   in his or her software, must choose between one of the two license models,
   which are
-  a) GNU public license version 2 or later
+  a) GNU Affero General Public License (AGPL)
   b) Swiss Ephemeris Professional License
 
   The choice must be made before the software developer distributes software
   containing parts of Swiss Ephemeris to others, and before any public
   service using the developed software is activated.
 
-  If the developer choses the GNU GPL software license, he or she must fulfill
+  If the developer choses the AGPL software license, he or she must fulfill
   the conditions of that license, which includes the obligation to place his
-  or her whole software project under the GNU GPL or a compatible license.
-  See http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+  or her whole software project under the AGPL or a compatible license.
+  See https://www.gnu.org/licenses/agpl-3.0.html
 
   If the developer choses the Swiss Ephemeris Professional license,
   he must follow the instructions as found in http://www.astro.com/swisseph/ 
@@ -51,11 +51,13 @@
   Among other things, the License requires that the copyright notices and
   this notice be preserved on all copies.
 
+  Authors of the Swiss Ephemeris: Dieter Koch and Alois Treindl
+
   The authors of Swiss Ephemeris have no control or influence over any of
   the derived works, i.e. over software or services created by other
   programmers which use Swiss Ephemeris functions.
 
-  The names of the authors or of the copyright holder must not
+  The names of the authors or of the copyright holder (Astrodienst) must not
   be used for promoting any software, product or service which uses or contains
   the Swiss Ephemeris. This copyright notice is the ONLY place where the
   names of the authors can legally appear, except in cases where they have
@@ -64,6 +66,7 @@
   The trademarks 'Swiss Ephemeris' and 'Swiss Ephemeris inside' may be used
   for promoting such software, products or services.
 */
+
 
 #include "swephexp.h"
 #include "sweph.h"
@@ -76,7 +79,7 @@
 #define BNIGHT_FACTOR   1.0
 #define PI		M_PI
 #define Min2Deg   (1.0 / 60.0)
-#define DEBUG  0
+#define SWEHEL_DEBUG  0
 #define DONE  1
 #define MaxTryHours   4 
 #define TimeStepDefault	1
@@ -278,7 +281,7 @@ static double OpticFactor(double Bback, double kX, double *dobs, double JDNDaysU
   Fa = pow((Pst / OpticDia), 2);
   Fr = (1 + 0.03 * pow((OpticMag * ObjectSize / CVA(Bback, SNi, helflag)), 2)) / pow(SNi, 2);
   Fm = pow(OpticMag, 2);
-#if DEBUG
+#if SWEHEL_DEBUG
   fprintf(stderr, "Pst=%f\n", Pst);
   fprintf(stderr, "Fb =%f\n", Fb);
   fprintf(stderr, "Fe =%f\n", Fe);
@@ -827,7 +830,7 @@ static double kOZ(double AltS, double sunra, double Lat)
   if (altslim < 0)
     altslim = 0;
   CHANGEKO = (100 - 11.6 * mymin(6, altslim)) / 100;
-if (0) {
+if ((0)) {
   static int a = 0;
   if (a == 0)
     printf("bsk=%f %f\n", kOZret, AltS);
@@ -1283,7 +1286,7 @@ static double Bsky(double AltO, double AziO, double AltM, double AziM, double JD
       Bsky += Bday(AltO, AziO, AltS, AziS, sunra, Lat, HeightEye, datm, helflag, serr);
     } else {
       Bsky += mymin(Bday(AltO, AziO, AltS, AziS, sunra, Lat, HeightEye, datm, helflag, serr), Btwi(AltO, AziO, AltS, AziS, sunra, Lat, HeightEye, datm, helflag, serr));
-if (0) {
+if ((0)) {
   static int a = 0;
   if (a == 0)
     printf("bsk=%f\n", Bsky);
@@ -1386,7 +1389,7 @@ static double VisLimMagn(double *dobs, double AltO, double AziO, double AltM, do
   Bsk = Bsky(AltO, AziO, AltM, AziM, JDNDaysUT, AltS, AziS, sunra, Lat, HeightEye, datm, helflag, serr);
   /* Schaefer, Astronomy and the limits of vision, Archaeoastronomy, 1993 Verder:*/
   kX = Deltam(AltO, AltS, sunra, Lat, HeightEye, datm, helflag, serr);
-if (0) {
+if ((0)) {
   static int a = 0;
   if (a == 0)
     printf("bsk=%f, kx=%f\n", Bsk, kX);
@@ -1423,7 +1426,7 @@ if (0) {
   /*Bsk = Bsk / CorrFactor1;*/
   Bsk = Bsk * CorrFactor1;
   Th = C1 * pow(1 + sqrt(C2 * Bsk), 2) * CorrFactor2;
-#if DEBUG
+#if SWEHEL_DEBUG
   fprintf(stderr, "Bsk=%f, ", Bsk);
   fprintf(stderr, "kX =%f, ", kX);
   fprintf(stderr, "Th =%f, ", Th);
@@ -1506,7 +1509,7 @@ int32 CALL_CONV swe_vis_limit_mag(double tjdut, double *dgeo, double *datm, doub
     if (ObjectLoc(tjdut, dgeo, datm, "moon", 1, helflag, &AziM, serr) == ERR)
       return ERR;
   }
-#if DEBUG
+#if SWEHEL_DEBUG
 {
   int i;
   for (i = 0; i < 6;i++)
@@ -1914,7 +1917,7 @@ int32 CALL_CONV swe_heliacal_pheno_ut(double JDNDaysUT, double *dgeo, double *da
     illum = attr[1] * 100;
   }
   kact = kt(AltS, sunra, dgeo[1], dgeo[2], datm[1], datm[2], datm[3], 4, serr);
-  if (0) {
+  if ((0)) {
 darr[26] = kR(AltS, dgeo[2]);
 darr[27] = kW(dgeo[2], datm[1], datm[2]);
 darr[28] = kOZ(AltS, sunra, dgeo[1]);
@@ -3228,7 +3231,7 @@ static int32 heliacal_ut_vis_lim(double tjd_start, double *dgeo, double *datm, d
     if (ipl == SE_MERCURY || ipl == SE_VENUS || TypeEvent <= 2) {
       retval = get_heliacal_details(tday, dgeo, datm, dobs, ObjectName, TypeEvent, helflag2, dret, serr);
       if (retval == ERR) goto swe_heliacal_err;
-    } else if (0) {
+    } else if ((0)) {
       if (TypeEvent == 4 || TypeEvent == 6) direct = -1;
       for (i = 0, d = 100.0 / 86400.0; i < 3; i++, d /= 10.0) {
 	while((retval = swe_vis_limit_mag(*dret + d * direct, dgeo, datm, dobs, ObjectName, helflag, darr, serr)) == -2 || (retval >= 0 && darr[0] < darr[7])) { 
